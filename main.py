@@ -105,18 +105,19 @@ def is_food_eaten():
             break
 
 def pressed_up():
+    if s.dir == [0, 1]: return
     s.dir = [0, -1]
-
     
 def pressed_down():
+    if s.dir == [0, -1]: return
     s.dir = [0, 1]
-
     
 def pressed_left():
+    if s.dir == [1, 0]: return
     s.dir = [-1, 0]
-
     
 def pressed_right():
+    if s.dir == [-1, 0]: return
     s.dir = [1, 0]
 
 def redraw_all(win):
