@@ -165,11 +165,12 @@ def main(win):
         time.sleep(0.5 / (1 + 0.13 * score))
      
     print_score()
-    print_char(1, height+2, " Game over. Press any key to exit...")
+    print_char(1, height+2, " Game over. Press enter to exit...")
     while True:
         try:                 
             key = win.getkey()
-            break
+            if key == os.linesep:
+                break
         except Exception as e:
             pass
 
