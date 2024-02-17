@@ -136,7 +136,6 @@ def main(win):
     while True:
         try:                 
             key = win.getkey()
-            win.addstr(str(key)) 
             if key == os.linesep:
                 break
             elif key.lower() == 'w':
