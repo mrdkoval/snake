@@ -161,7 +161,7 @@ def main(win):
             break
 
         redraw_all(win)
-        time.sleep(0.5 / (1 + 0.13 * score))
+        time.sleep(0.4 / (1 + 0.13 * score))
      
     print_score()
     print_char(1, height+2, " Game over. Press enter to exit...")
