@@ -135,23 +135,22 @@ def main(win):
     print_score()          
     spawn_food()
     while True:
-        try:                 
-            key = win.getkey()
-            if key == os.linesep:
-                break
-            elif key.lower() == 'w':
-                pressed_up()
-            elif key.lower() == 'a':
-                pressed_left()
-            elif key.lower() == 's':
-                pressed_down()
-            elif key.lower() == 'd':
-                pressed_right()
-            
-                        
-        except Exception as e:
-            # No input   
-            pass         
+        while True:
+            try:                 
+                key = win.getkey()
+                if key == os.linesep:
+                    break
+                elif key.lower() == 'w':
+                    pressed_up()
+                elif key.lower() == 'a':
+                    pressed_left()
+                elif key.lower() == 's':
+                    pressed_down()
+                elif key.lower() == 'd':
+                    pressed_right()
+                            
+            except Exception as e:
+                break       
 
         s.tick()
         is_food_eaten()
