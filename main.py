@@ -3,6 +3,11 @@ import os
 import time
 import random
 
+width = 15
+height = 15
+score = 0
+tick_time = 0.4
+
 print('\033[?25l', end="")
 
 stdscr = curses.initscr()
@@ -12,10 +17,7 @@ def clear_screen():
     
 def print_char(x, y, char):
     print("\033["+str(y)+";"+str(x)+"H"+char)
-
-width = 50
-height = 15
-score = 0
+    #win.addstr(x, y, char)
 
 def print_borders():
     for i in range(2, width):
@@ -33,13 +35,6 @@ def print_borders():
 def print_score():
     print_char(1, height+1, " Score: " + str(score))
 
-class Food:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-    
-    def draw(self):
-        print_char(self.x, self.y, '*')
 
 class Snake:
     def __init__(self):
@@ -80,90 +75,85 @@ class Snake:
         self.head_pos[0] += self.dir[0]
         self.head_pos[1] += self.dir[1]
 
-s = Snake()
+snake = Snake()
 
 
-foods = []
-def spawn_food():
-    is_point_on_snake = True
-    while is_point_on_snake:
-        rand_x = random.randint(2, width-1)
-        rand_y = random.randint(2, height-1)
-        is_point_on_snake = s.is_point_on_snake([rand_x, rand_y])
+class Foods:
+    def __init__(self):
+        self.foods = []
     
-    foods.append(Food(rand_x, rand_y))
+    def draw(self):
+        for food in self.foods:
+            print_char(food[0], food[1], '*')
 
-def is_food_eaten():
-    global score
-    for food in foods:
-        if food.x == s.head_pos[0] and food.y == s.head_pos[1]:
-            score = score + 1
-            s.grow_up()
-            foods.remove(food)
-            
-            spawn_food()
-            break
+    def spawn_food(self):
+        is_point_on_snake = True
+        rand_x = 0
+        rand_y = 0
+        while is_point_on_snake:
+            rand_x = random.randint(2, width-1)
+            rand_y = random.randint(2, height-1)
+            is_point_on_snake = snake.is_point_on_snake([rand_x, rand_y])
+        
+        self.foods.append([rand_x, rand_y])
+
+    def tick(self):
+        self.process_eaten_food()
+
+    def process_eaten_food(self):
+        global score
+        for food in self.foods:
+            if food[0] == snake.head_pos[0] and food[1] == snake.head_pos[1]:
+                score = score + 1
+                snake.grow_up()
+                self.foods.remove(food)
+                self.spawn_food()
+
+foods = Foods()
+
 
 def pressed_up():
-    if s.dir == [0, 1]: return
-    s.dir = [0, -1]
+    if snake.dir != [0, 1]: snake.dir = [0, -1]
     
 def pressed_down():
-    if s.dir == [0, -1]: return
-    s.dir = [0, 1]
+    if snake.dir != [0, -1]: snake.dir = [0, 1]
     
 def pressed_left():
-    if s.dir == [1, 0]: return
-    s.dir = [-1, 0]
+    if snake.dir != [1, 0]: snake.dir = [-1, 0]
     
 def pressed_right():
-    if s.dir == [-1, 0]: return
-    s.dir = [1, 0]
+    if snake.dir != [-1, 0]: snake.dir = [1, 0]
 
-def redraw_all(win):
+exit_pressed = False
+def process_key_events(win):
+    while True:
+        try:                 
+            key = win.getkey()
+            if key == os.linesep:
+                exit_pressed = True
+                return 
+            elif key.lower() == 'w':
+                pressed_up()
+            elif key.lower() == 'a':
+                pressed_left()
+            elif key.lower() == 's':
+                pressed_down()
+            elif key.lower() == 'd':
+                pressed_right()
+                        
+        except Exception as e:
+            break
+
+
+def redraw_all():
     clear_screen()
     print_borders()
     print_score()
-    s.draw()
-    for food in foods:
-        food.draw()
+    snake.draw()
+    foods.draw()
 
-def main(win):
-    win.nodelay(True)
-    key = ""
-    print_borders()
-    print_score()          
-    spawn_food()
-    while True:
-        while True:
-            try:                 
-                key = win.getkey()
-                if key == os.linesep:
-                    break
-                elif key.lower() == 'w':
-                    pressed_up()
-                elif key.lower() == 'a':
-                    pressed_left()
-                elif key.lower() == 's':
-                    pressed_down()
-                elif key.lower() == 'd':
-                    pressed_right()
-                            
-            except Exception as e:
-                break       
 
-        s.tick()
-        is_food_eaten()
-        
-        if s.head_pos[0] >= width or s.head_pos[1] >= height or s.head_pos[0] <= 1 or s.head_pos[1] <= 1:
-            break
-        if s.is_head_touching_tail():
-            break
-
-        redraw_all(win)
-        time.sleep(0.4 / (1 + 0.13 * score))
-     
-    print_score()
+def show_exit(win):
     print_char(1, height+2, " Game over. Press enter to exit...")
     while True:
         try:                 
@@ -172,5 +162,44 @@ def main(win):
                 break
         except Exception as e:
             pass
+
+
+def is_finish():
+    if snake.head_pos[0] >= width or snake.head_pos[1] >= height or snake.head_pos[0] <= 1 or snake.head_pos[1] <= 1:
+        return True
+    if snake.is_head_touching_tail():
+        return True
+        
+    return False
+
+
+def init(win):
+    win.nodelay(True)
+    foods.spawn_food()
+    redraw_all()
+
+def sleep():
+    speed_scale = (1 + 0.13 * score)
+    time.sleep(tick_time / speed_scale)
+
+
+def main(win):
+    init(win)
+    
+    while True:
+        process_key_events(win)
+        if exit_pressed:
+            break
+
+        snake.tick()
+        foods.tick()
+        
+        if is_finish():
+            break
+
+        redraw_all()
+        sleep()
+
+    show_exit(win)
 
 curses.wrapper(main)
