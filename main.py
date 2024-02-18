@@ -3,7 +3,7 @@ import os
 import time
 import random
 
-width = 15
+width = 40
 height = 15
 score = 0
 tick_time = 0.4
